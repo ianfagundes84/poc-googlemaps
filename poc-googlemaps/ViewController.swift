@@ -11,10 +11,25 @@ import UIKit
 
 class ViewController: UIViewController {
     var locationManager: CLLocationManager = CLLocationManager()
-    var manager: SharedQueue = SharedQueue()
 
+    var manager: SharedQueue?
     var mapView: GMSMapView = GMSMapView()
+    
+    private let databaseManager: DatabaseManagerProtocol?
 
+    init(sharedQueue: SharedQueue, databaseManager: DatabaseManagerProtocol) {
+        self.manager = sharedQueue
+        self.databaseManager = databaseManager
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        self.manager = SharedQueue(databaseManager: DataManager.instance)
+        self.databaseManager = DataManager.instance
+        super.init(coder: coder)
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         startEnqueue()
@@ -39,7 +54,7 @@ class ViewController: UIViewController {
                 guard let location = self?.locationManager.location else { return }
                 let currentDate = Date()
                 let timeLocation = TimeLocation(date: currentDate, location: location)
-                self?.manager.enqueue(timeLocation)
+                self?.manager?.enqueue(timeLocation)
 
                 Thread.sleep(forTimeInterval: 30)
             }
@@ -49,7 +64,7 @@ class ViewController: UIViewController {
     func startDequeue() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             while true {
-                if let item = self?.manager.dequeue() {
+                if let item = self?.manager?.dequeue() {
                     print("Date: \(item.date), Location: \(item.location)")
                 }
 

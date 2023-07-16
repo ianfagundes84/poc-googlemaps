@@ -9,6 +9,7 @@ import Foundation
 import CoreLocation
 
 struct TimeLocation {
+    var id: Int64?
     var date: Date
     var location: CLLocation
 }

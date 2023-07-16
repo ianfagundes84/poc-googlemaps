@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1466DAAD2A6369C0009F20DE /* SharedQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466DAAC2A6369C0009F20DE /* SharedQueue.swift */; };
 		1466DAB02A6369FF009F20DE /* TimeLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466DAAF2A6369FF009F20DE /* TimeLocation.swift */; };
+		149D894F2A64AA9F00765107 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149D894E2A64AA9F00765107 /* DataManager.swift */; };
 		14C80A8D2A61E73300847523 /* GoogleMapsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C80A8C2A61E73300847523 /* GoogleMapsHelper.swift */; };
 		14DDD0312A61E26F0087A906 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDD0302A61E26F0087A906 /* AppDelegate.swift */; };
 		14DDD0332A61E26F0087A906 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDD0322A61E26F0087A906 /* SceneDelegate.swift */; };
@@ -22,6 +23,7 @@
 /* Begin PBXFileReference section */
 		1466DAAC2A6369C0009F20DE /* SharedQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedQueue.swift; sourceTree = "<group>"; };
 		1466DAAF2A6369FF009F20DE /* TimeLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeLocation.swift; sourceTree = "<group>"; };
+		149D894E2A64AA9F00765107 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		14C80A8C2A61E73300847523 /* GoogleMapsHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GoogleMapsHelper.swift; sourceTree = "<group>"; };
 		14C80A8E2A61E98D00847523 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		14DDD02D2A61E26F0087A906 /* poc-googlemaps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "poc-googlemaps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +77,7 @@
 			children = (
 				14C80A8C2A61E73300847523 /* GoogleMapsHelper.swift */,
 				1466DAAC2A6369C0009F20DE /* SharedQueue.swift */,
+				149D894E2A64AA9F00765107 /* DataManager.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -144,6 +147,7 @@
 				14DDD02A2A61E26F0087A906 /* Frameworks */,
 				14DDD02B2A61E26F0087A906 /* Resources */,
 				4CCD4E3430A29EED4E3961B4 /* [CP] Copy Pods Resources */,
+				82AA8582319CF59880D10C59 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -240,6 +244,23 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		82AA8582319CF59880D10C59 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-poc-googlemaps/Pods-poc-googlemaps-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-poc-googlemaps/Pods-poc-googlemaps-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-poc-googlemaps/Pods-poc-googlemaps-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -250,6 +271,7 @@
 				1466DAAD2A6369C0009F20DE /* SharedQueue.swift in Sources */,
 				14DDD0352A61E26F0087A906 /* ViewController.swift in Sources */,
 				14DDD0312A61E26F0087A906 /* AppDelegate.swift in Sources */,
+				149D894F2A64AA9F00765107 /* DataManager.swift in Sources */,
 				14DDD0332A61E26F0087A906 /* SceneDelegate.swift in Sources */,
 				14C80A8D2A61E73300847523 /* GoogleMapsHelper.swift in Sources */,
 				1466DAB02A6369FF009F20DE /* TimeLocation.swift in Sources */,
