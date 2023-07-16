@@ -29,19 +29,19 @@ class ViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        locationManager.stopUpdatingLocation()
         mapView.clear()
     }
 
     func startEnqueue() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-
-            for _ in 1 ... 100 {
+            while true {
                 guard let location = self?.locationManager.location else { return }
                 let currentDate = Date()
-                //                let timeLocation = [TimeLocation(date: currentDate, location: location), TimeLocation(date: currentDate, location: location), TimeLocation(date: currentDate, location: location)]
-                let timeLocation = [TimeLocation(date: currentDate, location: location)]
+                let timeLocation = TimeLocation(date: currentDate, location: location)
                 self?.manager.enqueue(timeLocation)
-                sleep(30)
+
+                Thread.sleep(forTimeInterval: 30)
             }
         }
     }
@@ -49,18 +49,11 @@ class ViewController: UIViewController {
     func startDequeue() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             while true {
-                for i in 1 ... 10 {
-//                    print("init for step: \(i)")
-                    var dequeuedItem: TimeLocation?
-                    repeat {
-                        dequeuedItem = self?.manager.dequeue()
-                        if let item = dequeuedItem {
-                            print("Date: \(item.date), Location: \(item.location)")
-                        }
-                    } while dequeuedItem == nil
-//                    print("queue still not nil -> next for step: \(i + 1)")
+                if let item = self?.manager.dequeue() {
+                    print("Date: \(item.date), Location: \(item.location)")
                 }
-                sleep(30)
+
+                Thread.sleep(forTimeInterval: 30)
             }
         }
     }
@@ -68,6 +61,13 @@ class ViewController: UIViewController {
 
 extension ViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.last {
+            let bearing: CLLocationDirection = location.course >= 0 ? location.course : 0.0
+            GoogleMapsHelper.updateCameraPositionAndBearing(location: location, locationManager: manager, bearing: bearing, mapView: mapView)
+            GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
+//            GoogleMapsHelper.updateCameraBearing(bearing: location.course, mapView: mapView)
+        }
+
         GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
     }
 
@@ -77,6 +77,6 @@ extension ViewController: CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         locationManager.stopUpdatingLocation()
-        print("Error: \(error)")
+        print("Error: \(error.localizedDescription)")
     }
 }
