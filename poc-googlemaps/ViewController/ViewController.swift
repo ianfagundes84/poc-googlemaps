@@ -32,14 +32,20 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        startEnqueue()
-        startDequeue()
-
         print(GMSServices.openSourceLicenseInfo())
 
-        GoogleMapsHelper.initLocationManager(locationManager, delegate: self)
+           GoogleMapsHelper.initLocationManager(locationManager, delegate: self)
 
-        GoogleMapsHelper.createMap(on: view, locationManager: locationManager, mapView: mapView)
+           GoogleMapsHelper.createMap(on: view, locationManager: locationManager, mapView: mapView)
+        
+            //TODO: - Remove if necessary was for tests propose.
+            //Dequeuing only initialize after the
+            //first location update and enqueue
+            //operation
+
+//           DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 30.0) {
+//               self.startDequeue()
+//           }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -70,8 +76,7 @@ class ViewController: UIViewController {
                 if let item = self?.manager?.dequeue() {
                     print("Date: \(item.date), Location: \(item.location)")
                 }
-
-                Thread.sleep(forTimeInterval: 30)
+//                Thread.sleep(forTimeInterval: 30)
             }
         }
     }
@@ -84,11 +89,13 @@ extension ViewController: CLLocationManagerDelegate {
         let currentDate = Date()
         let location = clLocation.toLocation()
         let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location)
+        
         self.manager?.enqueue(timeLocation)
+        self.manager?.dequeue()
         
         let bearing: CLLocationDirection = clLocation.course >= 0 ? clLocation.course : 0.0
-           GoogleMapsHelper.updateCameraPositionAndBearing(location: clLocation, locationManager: manager, bearing: bearing, mapView: mapView)
-           GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
+        GoogleMapsHelper.updateCameraPositionAndBearing(location: clLocation, locationManager: manager, bearing: bearing, mapView: mapView)
+        GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
     }
 
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {

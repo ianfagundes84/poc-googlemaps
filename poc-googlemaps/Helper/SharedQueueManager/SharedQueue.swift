@@ -36,8 +36,8 @@ class SharedQueue: Queue {
         queue.append(element)
         
         databaseManager.addEntry(entry: element) { id in
-            // TODO: - Handle with deletion.
-            print(id)
+            // TODO: - Handle with creation
+            print("Enqueue date: \(element.date) id: \(element.id)")
         }
         
         semaphoreLock.signal()
@@ -45,7 +45,7 @@ class SharedQueue: Queue {
     }
 
     func dequeue() -> Position? {
-        semaphoreQueue.wait() // Wait here till an item is available.
+        semaphoreQueue.wait()
         semaphoreLock.wait()
         var dequeuedElement: Position? = nil
         if !queue.isEmpty {
@@ -55,6 +55,7 @@ class SharedQueue: Queue {
             if let dequeuedElementId = dequeuedElement?.id {
                 databaseManager.deleteEntry(entryID: dequeuedElementId) { success in
                     // TODO: - handle with success deletion
+                    print("Dequeue date: \(dequeuedElement?.date) id: \(dequeuedElement?.id)")
                 }
             }
         }

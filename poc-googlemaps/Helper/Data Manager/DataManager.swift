@@ -50,7 +50,7 @@ class DataManager: DatabaseManagerProtocol {
         queue.async {
             do {
                 try self.db!.run(self.entries.create(ifNotExists: true) { table in
-                    table.column(self.id, primaryKey: .autoincrement)
+                    table.column(self.id, primaryKey: .default)
                     table.column(self.date)
                     table.column(self.latitude)
                     table.column(self.longitude)
@@ -67,11 +67,12 @@ class DataManager: DatabaseManagerProtocol {
         queue.async {
             do {
                 let insert = self.entries.insert(
+                    self.id <- Int64(entry.id ?? 0),
                     self.date <- entry.date,
                     self.latitude <- entry.location.latitude,
                     self.longitude <- entry.location.longitude
                 )
-                let id = try self.db!.run(insert)
+                let id = try self.db?.run(insert)
                 completion(id)
             } catch {
                 print("Cannot insert to database")
@@ -79,6 +80,7 @@ class DataManager: DatabaseManagerProtocol {
             }
         }
     }
+
 
 
     func getAllEntries(completion: @escaping ([TimeLocation]?) -> ()) {
