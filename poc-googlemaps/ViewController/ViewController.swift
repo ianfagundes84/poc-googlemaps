@@ -14,6 +14,7 @@ class ViewController: UIViewController {
     var manager: SharedQueue?
     var mapView: GMSMapView = GMSMapView()
     var isRunning = true
+    var timer: DispatchSourceTimer?
     private let databaseManager: DataManager = DataManager.instance
 
     override func viewDidLoad() {
@@ -63,12 +64,11 @@ class ViewController: UIViewController {
         }
     }
 
-
     func startDequeue() {
-        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInitiated))
-        timer.schedule(deadline: .now(), repeating: .seconds(30), leeway: .seconds(1))
+        timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInitiated))
+        timer?.schedule(deadline: .now(), repeating: .seconds(30), leeway: .seconds(1))
         let dequeueQueue = DispatchQueue(label: "com.dequeue.queue", qos: .userInitiated)
-        timer.setEventHandler { [weak self] in
+        timer?.setEventHandler { [weak self] in
             dequeueQueue.async {
                 while true {
                     switch self?.manager?.dequeue() {
@@ -83,9 +83,12 @@ class ViewController: UIViewController {
                 }
             }
         }
-        timer.resume()
+        timer?.resume()
     }
-
+    
+    deinit {
+        timer?.cancel()
+    }
 }
 
 extension ViewController: CLLocationManagerDelegate {
