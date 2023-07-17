@@ -17,12 +17,12 @@ class ViewController: UIViewController {
     
     private let databaseManager: DatabaseManagerProtocol?
 
-    init(sharedQueue: SharedQueue, databaseManager: DatabaseManagerProtocol) {
+    init(sharedQueue: SharedQueue = SharedQueue(), databaseManager: DatabaseManagerProtocol = DataManager.instance) {
         self.manager = sharedQueue
         self.databaseManager = databaseManager
         super.init(nibName: nil, bundle: nil)
     }
-
+      
     required init?(coder: NSCoder) {
         self.manager = SharedQueue(databaseManager: DataManager.instance)
         self.databaseManager = DataManager.instance
@@ -51,9 +51,12 @@ class ViewController: UIViewController {
     func startEnqueue() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             while true {
-                guard let location = self?.locationManager.location else { return }
+                guard let clLocation = self?.locationManager.location else { return }
                 let currentDate = Date()
-                let timeLocation = TimeLocation(date: currentDate, location: location)
+                
+                let location = clLocation.toLocation()
+
+                let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location)
                 self?.manager?.enqueue(timeLocation)
 
                 Thread.sleep(forTimeInterval: 30)
@@ -76,14 +79,16 @@ class ViewController: UIViewController {
 
 extension ViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            let bearing: CLLocationDirection = location.course >= 0 ? location.course : 0.0
-            GoogleMapsHelper.updateCameraPositionAndBearing(location: location, locationManager: manager, bearing: bearing, mapView: mapView)
-            GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
-//            GoogleMapsHelper.updateCameraBearing(bearing: location.course, mapView: mapView)
-        }
-
-        GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
+        guard let clLocation = locations.last else { return }
+        
+        let currentDate = Date()
+        let location = clLocation.toLocation()
+        let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location)
+        self.manager?.enqueue(timeLocation)
+        
+        let bearing: CLLocationDirection = clLocation.course >= 0 ? clLocation.course : 0.0
+           GoogleMapsHelper.updateCameraPositionAndBearing(location: clLocation, locationManager: manager, bearing: bearing, mapView: mapView)
+           GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
     }
 
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {

@@ -18,9 +18,9 @@ class SharedQueue: Queue {
     
     private let databaseManager: DatabaseManagerProtocol
 
-    init(databaseManager: DatabaseManagerProtocol) {
+    init(databaseManager: DatabaseManagerProtocol = DataManager.instance) {
         self.databaseManager = databaseManager
-        
+
         self.databaseManager.getAllEntries { entries in
             self.queue = entries ?? []
         }
@@ -36,7 +36,7 @@ class SharedQueue: Queue {
         queue.append(element)
         
         databaseManager.addEntry(entry: element) { id in
-            // Optionally, you can handle the returned id here.
+            // TODO: - Handle with deletion.
             print(id)
         }
         
@@ -45,22 +45,20 @@ class SharedQueue: Queue {
     }
 
     func dequeue() -> Position? {
-        semaphoreQueue.wait()
+        semaphoreQueue.wait() // Wait here till an item is available.
         semaphoreLock.wait()
-        defer { semaphoreLock.signal() }
+        var dequeuedElement: Position? = nil
         if !queue.isEmpty {
 
-            let dequeuedElement = queue.removeFirst()
+            dequeuedElement = queue.removeFirst()
             
-            if let dequeuedElementId = dequeuedElement.id {
+            if let dequeuedElementId = dequeuedElement?.id {
                 databaseManager.deleteEntry(entryID: dequeuedElementId) { success in
-                    // Optionally, you can handle the success of the deletion here.
+                    // TODO: - handle with success deletion
                 }
             }
-            
-            return dequeuedElement
-        } else {
-            return nil
         }
+        semaphoreLock.signal()
+        return dequeuedElement
     }
 }

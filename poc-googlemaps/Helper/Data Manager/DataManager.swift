@@ -68,8 +68,8 @@ class DataManager: DatabaseManagerProtocol {
             do {
                 let insert = self.entries.insert(
                     self.date <- entry.date,
-                    self.latitude <- entry.location.coordinate.latitude,
-                    self.longitude <- entry.location.coordinate.longitude
+                    self.latitude <- entry.location.latitude,
+                    self.longitude <- entry.location.longitude
                 )
                 let id = try self.db!.run(insert)
                 completion(id)
@@ -89,10 +89,7 @@ class DataManager: DatabaseManagerProtocol {
                     entryList.append(TimeLocation(
                         id: entry[self.id],
                         date: entry[self.date],
-                        location: CLLocation(
-                            latitude: entry[self.latitude],
-                            longitude: entry[self.longitude]
-                        ))
+                        location: Location(latitude: entry[self.latitude], longitude: entry[self.longitude]))
                     )
                 }
                 completion(entryList)
@@ -109,8 +106,8 @@ class DataManager: DatabaseManagerProtocol {
             do {
                 let update = entry.update([
                     self.date <- newEntry.date,
-                    self.latitude <- newEntry.location.coordinate.latitude,
-                    self.longitude <- newEntry.location.coordinate.longitude
+                    self.latitude <- newEntry.location.latitude,
+                    self.longitude <- newEntry.location.longitude
                 ])
                 if try self.db!.run(update) > 0 {
                     completion(true)
