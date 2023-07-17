@@ -7,10 +7,14 @@
 
 import Foundation
 
+enum QueueError: Error {
+    case dequeueFailed
+}
+
 protocol Queue {
     associatedtype Position
     func enqueue(_ element: Position)
-    func dequeue() -> Position?
+    func dequeue() -> Result<Position, QueueError>
 }
 
 class SharedQueue: Queue {
@@ -23,6 +27,9 @@ class SharedQueue: Queue {
 
         self.databaseManager.getAllEntries { entries in
             self.queue = entries ?? []
+            for _ in self.queue {
+                self.semaphoreQueue.signal()
+            }
         }
     }
 
@@ -43,22 +50,26 @@ class SharedQueue: Queue {
         semaphoreLock.signal()
         semaphoreQueue.signal()
     }
-
-    func dequeue() -> Position? {
+    
+    func dequeue() -> Result<Position, QueueError> {
         semaphoreQueue.wait()
         semaphoreLock.wait()
-        var dequeuedElement: Position? = nil
-        if !queue.isEmpty {
-            dequeuedElement = queue.removeFirst()
-            
-            if let dequeuedElementId = dequeuedElement?.id {
-                databaseManager.deleteEntry(entryID: dequeuedElementId) { success in
-                    // TODO: - handle with success deletion
-                    print("Dequeue date: \(dequeuedElement?.date) id: \(dequeuedElement?.id)")
-                }
+
+        guard !queue.isEmpty else {
+            semaphoreLock.signal()
+            return .failure(.dequeueFailed)
+        }
+
+        let dequeuedElement = queue.removeFirst()
+
+        if let dequeuedElementId = dequeuedElement.id {
+            databaseManager.deleteEntry(entryID: dequeuedElementId) { success in
+                // TODO: - handle with success deletion
+                print("Dequeue date: \(dequeuedElement.date) id: \(dequeuedElement.id)")
             }
         }
+
         semaphoreLock.signal()
-        return dequeuedElement
+        return .success(dequeuedElement)
     }
 }

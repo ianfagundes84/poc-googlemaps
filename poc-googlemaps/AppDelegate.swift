@@ -17,9 +17,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
          GMSServices.provideAPIKey("AIzaSyAiXRtrUTbJvEwv32ujbErE1nlqnCvV71s")
          GMSServices.setMetalRendererEnabled(true)
          
-         let databaseManager = DataManager.instance
-         let sharedQueue = SharedQueue(databaseManager: databaseManager)
-         let mapsViewController = ViewController(sharedQueue: sharedQueue, databaseManager: databaseManager)
+//         let databaseManager = DataManager.instance
+//         let sharedQueue = SharedQueue(databaseManager: databaseManager)
+         let mapsViewController = ViewController()
          
          // Set up window and root view controller
          window = UIWindow()

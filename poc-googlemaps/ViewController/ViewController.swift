@@ -11,38 +11,31 @@ import UIKit
 
 class ViewController: UIViewController {
     var locationManager: CLLocationManager = CLLocationManager()
-
     var manager: SharedQueue?
     var mapView: GMSMapView = GMSMapView()
-
-    private let databaseManager: DatabaseManagerProtocol?
-
-    init(sharedQueue: SharedQueue = SharedQueue(), databaseManager: DatabaseManagerProtocol = DataManager.instance) {
-        manager = sharedQueue
-        self.databaseManager = databaseManager
-        super.init(nibName: nil, bundle: nil)
-    }
-
-    required init?(coder: NSCoder) {
-        manager = SharedQueue(databaseManager: DataManager.instance)
-        databaseManager = DataManager.instance
-        super.init(coder: coder)
-    }
+    var isRunning = true
+    private let databaseManager: DataManager = DataManager.instance
 
     override func viewDidLoad() {
         super.viewDidLoad()
         print(GMSServices.openSourceLicenseInfo())
 
+        manager = SharedQueue(databaseManager: databaseManager)
+        
         GoogleMapsHelper.initLocationManager(locationManager, delegate: self)
-
+        
+        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse {
+            locationManager.startUpdatingLocation()
+        }
+        
         GoogleMapsHelper.createMap(on: view, locationManager: locationManager, mapView: mapView)
-
+        
         startEnqueue()
-
+        
         // Dequeuing only initialize after the
         // first location update and enqueue
         // operation
-        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 120.0) {
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 30) {
             self.startDequeue()
         }
     }
@@ -51,11 +44,12 @@ class ViewController: UIViewController {
         super.viewWillDisappear(animated)
         locationManager.stopUpdatingLocation()
         mapView.clear()
+        isRunning = false
     }
-
+    
     func startEnqueue() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            while true {
+            while self?.isRunning ?? false {
                 guard let clLocation = self?.locationManager.location else { return }
                 let currentDate = Date()
 
@@ -73,12 +67,25 @@ class ViewController: UIViewController {
     func startDequeue() {
         let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInitiated))
         timer.schedule(deadline: .now(), repeating: .seconds(30), leeway: .seconds(1))
+        let dequeueQueue = DispatchQueue(label: "com.dequeue.queue", qos: .userInitiated)
         timer.setEventHandler { [weak self] in
-            guard let item = self?.manager?.dequeue() else { return }
-            print("Date: \(item.date), Location: \(item.location)")
+            dequeueQueue.async {
+                while true {
+                    switch self?.manager?.dequeue() {
+                    case .success(let item):
+                        print("Date: \(item.date), Location: \(item.location)")
+                    case .failure(let error):
+                        print("Error: \(error)")
+                        break
+                    case .none:
+                        break
+                    }
+                }
+            }
         }
         timer.resume()
     }
+
 }
 
 extension ViewController: CLLocationManagerDelegate {
