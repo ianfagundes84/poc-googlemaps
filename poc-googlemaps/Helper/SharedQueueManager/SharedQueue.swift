@@ -49,7 +49,6 @@ class SharedQueue: Queue {
         semaphoreLock.wait()
         var dequeuedElement: Position? = nil
         if !queue.isEmpty {
-
             dequeuedElement = queue.removeFirst()
             
             if let dequeuedElementId = dequeuedElement?.id {

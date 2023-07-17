@@ -14,38 +14,37 @@ class ViewController: UIViewController {
 
     var manager: SharedQueue?
     var mapView: GMSMapView = GMSMapView()
-    
+
     private let databaseManager: DatabaseManagerProtocol?
 
     init(sharedQueue: SharedQueue = SharedQueue(), databaseManager: DatabaseManagerProtocol = DataManager.instance) {
-        self.manager = sharedQueue
+        manager = sharedQueue
         self.databaseManager = databaseManager
         super.init(nibName: nil, bundle: nil)
     }
-      
+
     required init?(coder: NSCoder) {
-        self.manager = SharedQueue(databaseManager: DataManager.instance)
-        self.databaseManager = DataManager.instance
+        manager = SharedQueue(databaseManager: DataManager.instance)
+        databaseManager = DataManager.instance
         super.init(coder: coder)
     }
-    
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         print(GMSServices.openSourceLicenseInfo())
 
-           GoogleMapsHelper.initLocationManager(locationManager, delegate: self)
+        GoogleMapsHelper.initLocationManager(locationManager, delegate: self)
 
-           GoogleMapsHelper.createMap(on: view, locationManager: locationManager, mapView: mapView)
-        
-            //TODO: - Remove if necessary was for tests propose.
-            //Dequeuing only initialize after the
-            //first location update and enqueue
-            //operation
+        GoogleMapsHelper.createMap(on: view, locationManager: locationManager, mapView: mapView)
 
-//           DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 30.0) {
-//               self.startDequeue()
-//           }
+        startEnqueue()
+
+        // Dequeuing only initialize after the
+        // first location update and enqueue
+        // operation
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 120.0) {
+            self.startDequeue()
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -59,7 +58,7 @@ class ViewController: UIViewController {
             while true {
                 guard let clLocation = self?.locationManager.location else { return }
                 let currentDate = Date()
-                
+
                 let location = clLocation.toLocation()
 
                 let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location)
@@ -70,29 +69,26 @@ class ViewController: UIViewController {
         }
     }
 
+
     func startDequeue() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            while true {
-                if let item = self?.manager?.dequeue() {
-                    print("Date: \(item.date), Location: \(item.location)")
-                }
-//                Thread.sleep(forTimeInterval: 30)
-            }
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInitiated))
+        timer.schedule(deadline: .now(), repeating: .seconds(30), leeway: .seconds(1))
+        timer.setEventHandler { [weak self] in
+            guard let item = self?.manager?.dequeue() else { return }
+            print("Date: \(item.date), Location: \(item.location)")
         }
+        timer.resume()
     }
 }
 
 extension ViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let clLocation = locations.last else { return }
-        
+
         let currentDate = Date()
         let location = clLocation.toLocation()
         let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location)
-        
-        self.manager?.enqueue(timeLocation)
-        self.manager?.dequeue()
-        
+
         let bearing: CLLocationDirection = clLocation.course >= 0 ? clLocation.course : 0.0
         GoogleMapsHelper.updateCameraPositionAndBearing(location: clLocation, locationManager: manager, bearing: bearing, mapView: mapView)
         GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)

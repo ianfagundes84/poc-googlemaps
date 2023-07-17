@@ -29,9 +29,7 @@ class DataManager: DatabaseManagerProtocol {
     private let longitude = Expression<Double>("longitude")
 
     private init() {
-        let path = NSSearchPathForDirectoriesInDomains(
-            .documentDirectory, .userDomainMask, true
-        ).first!
+        let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
 
         do {
             db = try Connection("\(path)/db.sqlite3")
@@ -49,7 +47,7 @@ class DataManager: DatabaseManagerProtocol {
     func createTable(completion: @escaping (Bool) -> ()) {
         queue.async {
             do {
-                try self.db!.run(self.entries.create(ifNotExists: true) { table in
+                try self.db?.run(self.entries.create(ifNotExists: true) { table in
                     table.column(self.id, primaryKey: .default)
                     table.column(self.date)
                     table.column(self.latitude)
@@ -67,7 +65,6 @@ class DataManager: DatabaseManagerProtocol {
         queue.async {
             do {
                 let insert = self.entries.insert(
-                    self.id <- Int64(entry.id ?? 0),
                     self.date <- entry.date,
                     self.latitude <- entry.location.latitude,
                     self.longitude <- entry.location.longitude
@@ -81,8 +78,6 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
-
-
     func getAllEntries(completion: @escaping ([TimeLocation]?) -> ()) {
         queue.async {
             var entryList = [TimeLocation]()
@@ -91,8 +86,8 @@ class DataManager: DatabaseManagerProtocol {
                     entryList.append(TimeLocation(
                         id: entry[self.id],
                         date: entry[self.date],
-                        location: Location(latitude: entry[self.latitude], longitude: entry[self.longitude]))
-                    )
+                        location: Location(latitude: entry[self.latitude], longitude: entry[self.longitude])
+                    ))
                 }
                 completion(entryList)
             } catch {
