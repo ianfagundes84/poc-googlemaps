@@ -22,17 +22,17 @@ class ViewController: UIViewController {
         print(GMSServices.openSourceLicenseInfo())
 
         manager = SharedQueue(databaseManager: databaseManager)
-        
+
         GoogleMapsHelper.initLocationManager(locationManager, delegate: self)
-        
+
         if CLLocationManager.authorizationStatus() == .authorizedWhenInUse {
             locationManager.startUpdatingLocation()
         }
-        
+
         GoogleMapsHelper.createMap(on: view, locationManager: locationManager, mapView: mapView)
-        
+
         startEnqueue()
-        
+
         // Dequeuing only initialize after the
         // first location update and enqueue
         // operation
@@ -47,7 +47,7 @@ class ViewController: UIViewController {
         mapView.clear()
         isRunning = false
     }
-    
+
     func startEnqueue() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             while self?.isRunning ?? false {
@@ -65,25 +65,20 @@ class ViewController: UIViewController {
     }
 
     func startDequeue() {
-        timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInitiated))
-        timer?.schedule(deadline: .now(), repeating: .seconds(30), leeway: .seconds(1))
         let dequeueQueue = DispatchQueue(label: "com.dequeue.queue", qos: .userInitiated)
-        timer?.setEventHandler { [weak self] in
-            dequeueQueue.async {
-                while true {
-                    switch self?.manager?.dequeue() {
-                    case .success(let item):
-                        print("Date: \(item.date), Location: \(item.location)")
-                    case .failure(let error):
-                        print("Error: \(error)")
-                        break
-                    case .none:
-                        break
-                    }
+        dequeueQueue.async { [weak self] in
+            while self?.isRunning ?? false {
+                switch self?.manager?.dequeue() {
+                case let .success(item):
+                    // print("Date: \(item.date), Location: \(item.location)")
+                    break
+                case let .failure(error):
+                    break
+                case .none:
+                    break
                 }
             }
         }
-        timer?.resume()
     }
     
     deinit {

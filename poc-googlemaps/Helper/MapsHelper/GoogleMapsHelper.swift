@@ -15,6 +15,9 @@ struct GoogleMapsHelper {
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.delegate = delegate as? CLLocationManagerDelegate
+        if #available(iOS 13.0, *) {
+            locationManager.startMonitoringSignificantLocationChanges()
+        }
     }
 
     static func createMap(on view: UIView, locationManager: CLLocationManager, mapView: GMSMapView) {
