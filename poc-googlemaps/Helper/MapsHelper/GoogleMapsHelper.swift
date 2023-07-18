@@ -1,6 +1,11 @@
 import GoogleMaps
 import UIKit
 
+enum LocationError: Error {
+    case requestNotAuthorized
+    case otherError(String)
+}
+
 protocol GoogleMapsHelperDelegate: AnyObject {
     func didUpdateLocation(_ location: CLLocation)
     func didFailWithError(_ error: Error)
@@ -122,7 +127,7 @@ extension GoogleMapsHelper {
         case .authorizedAlways, .authorizedWhenInUse:
             locationManager.requestLocation()
         default:
-            delegate?.didFailWithError(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location request not authorized."]))
+            delegate?.didFailWithError(LocationError.requestNotAuthorized)
         }
     }
 }
