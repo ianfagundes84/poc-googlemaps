@@ -7,15 +7,15 @@
 
 import CoreLocation
 import GoogleMaps
-import UIKit
 import TinyConstraints
+import UIKit
 
 class ViewController: UIViewController {
     var manager: SharedQueue?
     var isRunning = true
     var timer: DispatchSourceTimer?
     private let databaseManager: DataManager = DataManager.instance
-    
+
     lazy var btPanic: UIButton = {
         let bt = UIButton()
         bt.backgroundColor = .red
@@ -32,19 +32,21 @@ class ViewController: UIViewController {
         return bt
     }()
 
-    
     // MARK: - Life cycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         // MARK: - GPS + layout
+
         GoogleMapsHelper.shared.createMap(on: view)
         GoogleMapsHelper.shared.delegate = self
-        
+
         setupLayout()
         view.bringSubviewToFront(btPanic)
-        
+
         // MARK: - QUEUE
+
         manager = SharedQueue(databaseManager: databaseManager)
         startEnqueue()
         // Dequeuing only initialize after the
@@ -59,7 +61,7 @@ class ViewController: UIViewController {
         super.viewDidLayoutSubviews()
         btPanic.layer.cornerRadius = btPanic.frame.height / 2
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         GoogleMapsHelper.shared.stopUpdatingLocation()
@@ -68,7 +70,7 @@ class ViewController: UIViewController {
     }
 
     // MARK: - Functions
-    
+
     func startEnqueue() {
         DispatchQueue.global(qos: .utility).async { [weak self] in
             while self?.isRunning ?? false {
@@ -101,13 +103,11 @@ class ViewController: UIViewController {
             }
         }
     }
-    
+
     // MARK: - Actions - Panic button rules and treatment
+
     @IBAction func panicButtonPressed(_ sender: UIButton) {
-        if !GoogleMapsHelper.shared.isPanicButtonPressed {
-            GoogleMapsHelper.shared.isPanicButtonPressed = true
-            GoogleMapsHelper.shared.panicButton()
-        }
+        GoogleMapsHelper.shared.panicButton()
     }
 
     deinit {
@@ -116,6 +116,7 @@ class ViewController: UIViewController {
 }
 
 // MARK: - Conforming with CLLocation manager delegate
+
 extension ViewController: GoogleMapsHelperDelegate {
     func didUpdateLocation(_ location: CLLocation) {
         if GoogleMapsHelper.shared.isPanicButtonPressed {
@@ -126,15 +127,15 @@ extension ViewController: GoogleMapsHelperDelegate {
     func didFailWithError(_ error: Error) {
         print("Error getting location: \(error.localizedDescription)")
     }
-
 }
 
 // MARK: - Layout to be modified.
+
 extension ViewController: CLLocationManagerDelegate {
     func setupLayout() {
         btPanic.addTarget(self, action: #selector(panicButtonPressed(_:)), for: .touchUpInside)
         view.addSubview(btPanic)
-        
+
         btPanic.height(50)
         btPanic.width(50)
         btPanic.trailingToSuperview(offset: 16)

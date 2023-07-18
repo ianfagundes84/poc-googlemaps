@@ -15,6 +15,8 @@ class GoogleMapsHelper: NSObject, CLLocationManagerDelegate {
     static let shared = GoogleMapsHelper()
 
     var locationManager = CLLocationManager()
+    var panicLocationManager = CLLocationManager()
+
     var mapView: GMSMapView?
 
     var isPanicButtonPressed: Bool = false
@@ -27,6 +29,7 @@ class GoogleMapsHelper: NSObject, CLLocationManagerDelegate {
     override private init() {
         super.init()
         initLocationManager(locationManager, delegate: self)
+        initLocationManager(panicLocationManager, delegate: self)
     }
 
     func initLocationManager(_ locationManager: CLLocationManager, delegate: CLLocationManagerDelegate) {
@@ -123,9 +126,10 @@ class GoogleMapsHelper: NSObject, CLLocationManagerDelegate {
 
 extension GoogleMapsHelper {
     func panicButton() {
-        switch locationManager.authorizationStatus {
+        switch panicLocationManager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
-            locationManager.requestLocation()
+            isPanicButtonPressed = true
+            panicLocationManager.requestLocation()
         default:
             delegate?.didFailWithError(LocationError.requestNotAuthorized)
         }
@@ -138,22 +142,22 @@ extension GoogleMapsHelper {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
 
-        let zoomLevel = manager.accuracyAuthorization == .fullAccuracy ? preciseLocationZoomLevel : approximateLocationZoomLevel
-        let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
-                                              longitude: location.coordinate.longitude,
-                                              zoom: zoomLevel)
-        mapView?.camera = camera
-
-        if let location = locations.first {
+        if manager == locationManager {
+            let zoomLevel = manager.accuracyAuthorization == .fullAccuracy ? preciseLocationZoomLevel : approximateLocationZoomLevel
+            let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
+                                                  longitude: location.coordinate.longitude,
+                                                  zoom: zoomLevel)
+            mapView?.camera = camera
+        } else if manager == panicLocationManager, isPanicButtonPressed {
             delegate?.didUpdateLocation(location)
-
-            if isPanicButtonPressed {
-                manager.stopUpdatingLocation()
-            }
+            isPanicButtonPressed = false
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         delegate?.didFailWithError(error)
+        if manager == panicLocationManager {
+            isPanicButtonPressed = false
+        }
     }
 }
