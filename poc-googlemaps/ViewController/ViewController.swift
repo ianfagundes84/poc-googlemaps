@@ -11,10 +11,13 @@ import TinyConstraints
 import UIKit
 
 class ViewController: UIViewController {
+    
     var manager: SharedQueue?
     var isRunning = true
     var timer: DispatchSourceTimer?
     private let databaseManager: DataManager = DataManager.instance
+
+    var canPressPanicButton: Bool = true
 
     lazy var btPanic: UIButton = {
         let bt = UIButton()
@@ -104,10 +107,25 @@ class ViewController: UIViewController {
         }
     }
 
+    func showPanicButtonAlert() {
+        let alertController = UIAlertController(title: "Pânico já pressionado", message: "Aguarde 2 segundos para pressionar o botão novamente.", preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
+    }
+
     // MARK: - Actions - Panic button rules and treatment
 
     @IBAction func panicButtonPressed(_ sender: UIButton) {
-        GoogleMapsHelper.shared.panicButton()
+        if canPressPanicButton {
+            canPressPanicButton = false
+            GoogleMapsHelper.shared.panicButton()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                self?.canPressPanicButton = true
+            }
+        } else {
+            showPanicButtonAlert()
+        }
     }
 
     deinit {
