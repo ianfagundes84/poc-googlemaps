@@ -8,31 +8,45 @@
 import CoreLocation
 import GoogleMaps
 import UIKit
+import TinyConstraints
 
 class ViewController: UIViewController {
-    var locationManager: CLLocationManager = CLLocationManager()
     var manager: SharedQueue?
-    var mapView: GMSMapView = GMSMapView()
     var isRunning = true
     var timer: DispatchSourceTimer?
     private let databaseManager: DataManager = DataManager.instance
+    
+    lazy var btPanic: UIButton = {
+        let bt = UIButton()
+        bt.backgroundColor = .red
 
+        bt.setTitle("Panic", for: .normal)
+        bt.setTitleColor(.white, for: .normal)
+
+        bt.layer.shadowColor = UIColor.black.cgColor
+        bt.layer.shadowOffset = CGSize(width: 0, height: 1.0)
+        bt.layer.shadowOpacity = 0.2
+        bt.layer.shadowRadius = 4.0
+        bt.layer.masksToBounds = false
+
+        return bt
+    }()
+
+    
+    // MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(GMSServices.openSourceLicenseInfo())
-
+        
+        // MARK: - GPS + layout
+        GoogleMapsHelper.shared.createMap(on: view)
+        GoogleMapsHelper.shared.delegate = self
+        
+        setupLayout()
+        view.bringSubviewToFront(btPanic)
+        
+        // MARK: - QUEUE
         manager = SharedQueue(databaseManager: databaseManager)
-
-        GoogleMapsHelper.initLocationManager(locationManager, delegate: self)
-
-        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse {
-            locationManager.startUpdatingLocation()
-        }
-
-        GoogleMapsHelper.createMap(on: view, locationManager: locationManager, mapView: mapView)
-
         startEnqueue()
-
         // Dequeuing only initialize after the
         // first location update and enqueue
         // operation
@@ -41,17 +55,24 @@ class ViewController: UIViewController {
         }
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        btPanic.layer.cornerRadius = btPanic.frame.height / 2
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        locationManager.stopUpdatingLocation()
-        mapView.clear()
+        GoogleMapsHelper.shared.stopUpdatingLocation()
+        GoogleMapsHelper.shared.clearMapView()
         isRunning = false
     }
 
+    // MARK: - Functions
+    
     func startEnqueue() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        DispatchQueue.global(qos: .utility).async { [weak self] in
             while self?.isRunning ?? false {
-                guard let clLocation = self?.locationManager.location else { return }
+                guard let clLocation = GoogleMapsHelper.shared.locationManager.location else { return }
                 let currentDate = Date()
 
                 let location = clLocation.toLocation()
@@ -65,7 +86,7 @@ class ViewController: UIViewController {
     }
 
     func startDequeue() {
-        let dequeueQueue = DispatchQueue(label: "com.dequeue.queue", qos: .userInitiated)
+        let dequeueQueue = DispatchQueue(label: "com.dequeue.queue", qos: .utility)
         dequeueQueue.async { [weak self] in
             while self?.isRunning ?? false {
                 switch self?.manager?.dequeue() {
@@ -81,30 +102,42 @@ class ViewController: UIViewController {
         }
     }
     
+    // MARK: - Actions - Panic button rules and treatment
+    @IBAction func panicButtonPressed(_ sender: UIButton) {
+        if !GoogleMapsHelper.shared.isPanicButtonPressed {
+            GoogleMapsHelper.shared.isPanicButtonPressed = true
+            GoogleMapsHelper.shared.panicButton()
+        }
+    }
+
     deinit {
         timer?.cancel()
     }
 }
 
+// MARK: - Conforming with CLLocation manager delegate
+extension ViewController: GoogleMapsHelperDelegate {
+    func didUpdateLocation(_ location: CLLocation) {
+        if GoogleMapsHelper.shared.isPanicButtonPressed {
+            print("Panic location: \(location)")
+        }
+    }
+
+    func didFailWithError(_ error: Error) {
+        print("Error getting location: \(error.localizedDescription)")
+    }
+
+}
+
+// MARK: - Layout to be modified.
 extension ViewController: CLLocationManagerDelegate {
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let clLocation = locations.last else { return }
-
-        let currentDate = Date()
-        let location = clLocation.toLocation()
-        let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location)
-
-        let bearing: CLLocationDirection = clLocation.course >= 0 ? clLocation.course : 0.0
-        GoogleMapsHelper.updateCameraPositionAndBearing(location: clLocation, locationManager: manager, bearing: bearing, mapView: mapView)
-        GoogleMapsHelper.didUpdateLocations(locations, locationManager: locationManager, mapView: mapView)
-    }
-
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        GoogleMapsHelper.handle(manager, didChangeAuthorization: status)
-    }
-
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        locationManager.stopUpdatingLocation()
-        print("Error: \(error.localizedDescription)")
+    func setupLayout() {
+        btPanic.addTarget(self, action: #selector(panicButtonPressed(_:)), for: .touchUpInside)
+        view.addSubview(btPanic)
+        
+        btPanic.height(50)
+        btPanic.width(50)
+        btPanic.trailingToSuperview(offset: 16)
+        btPanic.topToSuperview(offset: 42)
     }
 }

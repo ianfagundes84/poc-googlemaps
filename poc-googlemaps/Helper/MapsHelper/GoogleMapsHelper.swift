@@ -1,13 +1,30 @@
 import GoogleMaps
 import UIKit
 
-struct GoogleMapsHelper {
-    static let NewYork = CLLocation(latitude: -23.730610, longitude: -46.935242)
+protocol GoogleMapsHelperDelegate: AnyObject {
+    func didUpdateLocation(_ location: CLLocation)
+    func didFailWithError(_ error: Error)
+}
 
-    static var preciseLocationZoomLevel: Float = 15.0
-    static var approximateLocationZoomLevel: Float = 10.0
+class GoogleMapsHelper: NSObject, CLLocationManagerDelegate {
+    static let shared = GoogleMapsHelper()
 
-    static func initLocationManager(_ locationManager: CLLocationManager, delegate: UIViewController) {
+    var locationManager = CLLocationManager()
+    var mapView: GMSMapView?
+
+    var isPanicButtonPressed: Bool = false
+
+    var preciseLocationZoomLevel: Float = 15.0
+    var approximateLocationZoomLevel: Float = 10.0
+
+    weak var delegate: GoogleMapsHelperDelegate?
+
+    override private init() {
+        super.init()
+        initLocationManager(locationManager, delegate: self)
+    }
+
+    func initLocationManager(_ locationManager: CLLocationManager, delegate: CLLocationManagerDelegate) {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestAlwaysAuthorization()
         locationManager.distanceFilter = 50
@@ -20,30 +37,29 @@ struct GoogleMapsHelper {
         }
     }
 
-    static func createMap(on view: UIView, locationManager: CLLocationManager, mapView: GMSMapView) {
-        let zoomLevel = locationManager.accuracyAuthorization == .fullAccuracy ? preciseLocationZoomLevel : approximateLocationZoomLevel
-        let camera = GMSCameraPosition.camera(withLatitude: NewYork.coordinate.latitude,
-                                              longitude: NewYork.coordinate.longitude,
-                                              zoom: zoomLevel)
-        var mapView = mapView
-        mapView = GMSMapView.map(withFrame: view.bounds, camera: camera)
-        mapView.settings.myLocationButton = true
-        mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        mapView.isMyLocationEnabled = true
-
-        view.addSubview(mapView)
-    }
-
-    static func didUpdateLocations(_ locations: [CLLocation], locationManager: CLLocationManager, mapView: GMSMapView) {
-        let location: CLLocation = locations.last!
+    func createMap(on view: UIView) {
+        guard let location = locationManager.location else { return }
         let zoomLevel = locationManager.accuracyAuthorization == .fullAccuracy ? preciseLocationZoomLevel : approximateLocationZoomLevel
         let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
                                               longitude: location.coordinate.longitude,
                                               zoom: zoomLevel)
-        mapView.camera = camera
+        mapView = GMSMapView.map(withFrame: view.bounds, camera: camera)
+        mapView?.settings.myLocationButton = true
+        mapView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        mapView?.isMyLocationEnabled = true
+
+        view.addSubview(mapView!)
     }
 
-    static func updateCameraBearing(bearing: Double, mapView: GMSMapView) {
+    func stopUpdatingLocation() {
+        locationManager.stopUpdatingLocation()
+    }
+
+    func clearMapView() {
+        mapView?.clear()
+    }
+
+    func updateCameraBearing(bearing: Double, mapView: GMSMapView) {
         let camera = mapView.camera
         let updatedCamera = GMSCameraPosition.camera(withLatitude: camera.target.latitude,
                                                      longitude: camera.target.longitude,
@@ -53,7 +69,7 @@ struct GoogleMapsHelper {
         mapView.camera = updatedCamera
     }
 
-    static func updateCameraPositionAndBearing(location: CLLocation, locationManager: CLLocationManager, bearing: CLLocationDirection, mapView: GMSMapView) {
+    func updateCameraPositionAndBearing(location: CLLocation, locationManager: CLLocationManager, bearing: CLLocationDirection, mapView: GMSMapView) {
         let zoomLevel = locationManager.accuracyAuthorization == .fullAccuracy ? preciseLocationZoomLevel : approximateLocationZoomLevel
         let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
                                               longitude: location.coordinate.longitude,
@@ -62,8 +78,8 @@ struct GoogleMapsHelper {
                                               viewingAngle: 0)
         mapView.animate(to: camera)
     }
-    
-    static func handle(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+
+    func handle(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         let accuracy = manager.accuracyAuthorization
         switch accuracy {
         case .fullAccuracy:
@@ -95,5 +111,44 @@ struct GoogleMapsHelper {
         @unknown default:
             fatalError()
         }
+    }
+}
+
+// MARK: - Panic Handler
+
+extension GoogleMapsHelper {
+    func panicButton() {
+        switch locationManager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            locationManager.requestLocation()
+        default:
+            delegate?.didFailWithError(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location request not authorized."]))
+        }
+    }
+}
+
+// MARK: - GoogleMapsHelper delegate:
+
+extension GoogleMapsHelper {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+
+        let zoomLevel = manager.accuracyAuthorization == .fullAccuracy ? preciseLocationZoomLevel : approximateLocationZoomLevel
+        let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
+                                              longitude: location.coordinate.longitude,
+                                              zoom: zoomLevel)
+        mapView?.camera = camera
+
+        if let location = locations.first {
+            delegate?.didUpdateLocation(location)
+
+            if isPanicButtonPressed {
+                manager.stopUpdatingLocation()
+            }
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        delegate?.didFailWithError(error)
     }
 }
