@@ -13,6 +13,8 @@
 		149D894F2A64AA9F00765107 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149D894E2A64AA9F00765107 /* DataManager.swift */; };
 		14B1C1892A64DCB20077503D /* CoreLocation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B1C1882A64DCB20077503D /* CoreLocation+Extensions.swift */; };
 		14B1C18B2A64DCDC0077503D /* IDGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B1C18A2A64DCDC0077503D /* IDGenerator.swift */; };
+		14B9C0572A685A53009FFFA5 /* APISender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B9C0562A685A53009FFFA5 /* APISender.swift */; };
+		14B9C0592A687A51009FFFA5 /* QueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B9C0582A687A51009FFFA5 /* QueueManager.swift */; };
 		14C80A8D2A61E73300847523 /* GoogleMapsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C80A8C2A61E73300847523 /* GoogleMapsHelper.swift */; };
 		14DDD0312A61E26F0087A906 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDD0302A61E26F0087A906 /* AppDelegate.swift */; };
 		14DDD0332A61E26F0087A906 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDD0322A61E26F0087A906 /* SceneDelegate.swift */; };
@@ -30,6 +32,8 @@
 		149D894E2A64AA9F00765107 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		14B1C1882A64DCB20077503D /* CoreLocation+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreLocation+Extensions.swift"; sourceTree = "<group>"; };
 		14B1C18A2A64DCDC0077503D /* IDGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDGenerator.swift; sourceTree = "<group>"; };
+		14B9C0562A685A53009FFFA5 /* APISender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APISender.swift; sourceTree = "<group>"; };
+		14B9C0582A687A51009FFFA5 /* QueueManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueManager.swift; sourceTree = "<group>"; };
 		14C80A8C2A61E73300847523 /* GoogleMapsHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GoogleMapsHelper.swift; sourceTree = "<group>"; };
 		14C80A8E2A61E98D00847523 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		14DDD02D2A61E26F0087A906 /* poc-googlemaps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "poc-googlemaps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,12 +76,13 @@
 			path = MapsHelper;
 			sourceTree = "<group>";
 		};
-		14B1C18D2A64DCF20077503D /* SharedQueueManager */ = {
+		14B1C18D2A64DCF20077503D /* Queue */ = {
 			isa = PBXGroup;
 			children = (
 				1466DAAC2A6369C0009F20DE /* SharedQueue.swift */,
+				14B9C0582A687A51009FFFA5 /* QueueManager.swift */,
 			);
-			path = SharedQueueManager;
+			path = Queue;
 			sourceTree = "<group>";
 		};
 		14B1C18E2A64DD030077503D /* Data Manager */ = {
@@ -105,6 +110,14 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		14B9C0552A685A37009FFFA5 /* Remote */ = {
+			isa = PBXGroup;
+			children = (
+				14B9C0562A685A53009FFFA5 /* APISender.swift */,
+			);
+			path = Remote;
+			sourceTree = "<group>";
+		};
 		14C80A892A61E6EE00847523 /* ViewController */ = {
 			isa = PBXGroup;
 			children = (
@@ -123,8 +136,9 @@
 		14C80A8B2A61E71D00847523 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				14B9C0552A685A37009FFFA5 /* Remote */,
 				14B1C18C2A64DCE70077503D /* MapsHelper */,
-				14B1C18D2A64DCF20077503D /* SharedQueueManager */,
+				14B1C18D2A64DCF20077503D /* Queue */,
 				14B1C18E2A64DD030077503D /* Data Manager */,
 				14B1C18F2A64DD0D0077503D /* Extensions */,
 				14B1C1902A64DD180077503D /* Utils */,
@@ -321,10 +335,12 @@
 				14DDD0352A61E26F0087A906 /* ViewController.swift in Sources */,
 				14DDD0312A61E26F0087A906 /* AppDelegate.swift in Sources */,
 				140184792A67792F009C3456 /* Date+Extensions.swift in Sources */,
+				14B9C0572A685A53009FFFA5 /* APISender.swift in Sources */,
 				149D894F2A64AA9F00765107 /* DataManager.swift in Sources */,
 				14DDD0332A61E26F0087A906 /* SceneDelegate.swift in Sources */,
 				14B1C1892A64DCB20077503D /* CoreLocation+Extensions.swift in Sources */,
 				14B1C18B2A64DCDC0077503D /* IDGenerator.swift in Sources */,
+				14B9C0592A687A51009FFFA5 /* QueueManager.swift in Sources */,
 				14C80A8D2A61E73300847523 /* GoogleMapsHelper.swift in Sources */,
 				1466DAB02A6369FF009F20DE /* TimeLocation.swift in Sources */,
 			);

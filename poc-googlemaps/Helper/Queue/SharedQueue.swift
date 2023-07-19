@@ -78,7 +78,7 @@ class SharedQueue: Queue {
     }
     
     func requeueUndelivered() {
-        databaseManager.getUndeliveredEntries { entries in
+        databaseManager.getAllUndeliveredEntries { entries in
             if let entries = entries {
                 for entry in entries {
                     self.enqueue(entry)
@@ -86,5 +86,4 @@ class SharedQueue: Queue {
             }
         }
     }
-
 }

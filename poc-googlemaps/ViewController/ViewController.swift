@@ -82,7 +82,7 @@ class ViewController: UIViewController {
 
                 let location = clLocation.toLocation()
 
-                let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location)
+                let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location, delivered: false)
                 self?.manager?.enqueue(timeLocation)
 
                 Thread.sleep(forTimeInterval: 30)

@@ -12,6 +12,15 @@ struct TimeLocation {
     let id: String
     let date: Date
     let location: Location
+    let delivered: Bool
+    
+    init(id: String, date: Date, location: Location, delivered: Bool) {
+        self.id = id
+        self.date = date
+        self.location = location
+        self.delivered = delivered 
+    }
+
 }
 
 struct Location {

@@ -5,17 +5,17 @@
 //  Created by Ian Fagundes on 16/07/23.
 //
 
+import CoreLocation
 import Foundation
 import SQLite
-import CoreLocation
 
 protocol DatabaseManagerProtocol {
     func createTable(completion: @escaping (Bool) -> Void)
     func addEntry(entry: TimeLocation, completion: @escaping (String?) -> Void)
     func getAllEntries(completion: @escaping ([TimeLocation]?) -> Void)
-    func getUndeliveredEntries(completion: @escaping ([TimeLocation]?) -> ())
-    func updateDeliveryStatus(entryID: String, delivered: Bool, completion: @escaping (Bool) -> ())
-    func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> ())
+    func getAllUndeliveredEntries(completion: @escaping ([TimeLocation]?) -> Void)
+    func updateDeliveryStatus(entryID: String, delivered: Bool, completion: @escaping (Bool) -> Void)
+    func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> Void)
     func deleteEntry(entryID: String, completion: @escaping (Bool) -> Void)
 }
 
@@ -31,7 +31,6 @@ class DataManager: DatabaseManagerProtocol {
     private let longitude = Expression<Double>("longitude")
     private let delivered = Expression<Bool>("delivered")
 
-
     private init() {
         let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
 
@@ -44,11 +43,11 @@ class DataManager: DatabaseManagerProtocol {
             }
         } catch {
             db = nil
-            print ("Unable to open database")
+            print("Unable to open database")
         }
     }
 
-    func createTable(completion: @escaping (Bool) -> ()) {
+    func createTable(completion: @escaping (Bool) -> Void) {
         queue.async {
             do {
                 try self.db?.run(self.entries.create(ifNotExists: true) { table in
@@ -66,7 +65,7 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
-    func addEntry(entry: TimeLocation, completion: @escaping (String?) -> ()) {
+    func addEntry(entry: TimeLocation, completion: @escaping (String?) -> Void) {
         queue.async {
             do {
                 let insert = self.entries.insert(
@@ -76,7 +75,7 @@ class DataManager: DatabaseManagerProtocol {
                     self.longitude <- entry.location.longitude,
                     self.delivered <- false
                 )
-                let _ = try self.db?.run(insert)
+                _ = try self.db?.run(insert)
                 completion(entry.id)
             } catch {
                 print("Cannot insert to database")
@@ -85,26 +84,7 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
-    func getAllEntries(completion: @escaping ([TimeLocation]?) -> ()) {
-        queue.async {
-            var entryList = [TimeLocation]()
-            do {
-                for entry in try self.db!.prepare(self.entries) {
-                    entryList.append(TimeLocation(
-                        id: entry[self.id],
-                        date: entry[self.date],
-                        location: Location(latitude: entry[self.latitude], longitude: entry[self.longitude])
-                    ))
-                }
-                completion(entryList)
-            } catch {
-                print("Cannot get list of entries")
-                completion(nil)
-            }
-        }
-    }
-
-    func getUndeliveredEntries(completion: @escaping ([TimeLocation]?) -> ()) {
+    func getAllEntries(completion: @escaping ([TimeLocation]?) -> Void) {
         queue.async {
             var entryList = [TimeLocation]()
             do {
@@ -123,8 +103,28 @@ class DataManager: DatabaseManagerProtocol {
             }
         }
     }
-    
-    func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> ()) {
+
+    func getAllUndeliveredEntries(completion: @escaping ([TimeLocation]?) -> Void) {
+        queue.async {
+            var entryList = [TimeLocation]()
+            do {
+                for entry in try self.db!.prepare(self.entries.filter(self.delivered == false)) {
+                    entryList.append(TimeLocation(
+                        id: entry[self.id],
+                        date: entry[self.date],
+                        location: Location(latitude: entry[self.latitude], longitude: entry[self.longitude]),
+                        delivered: entry[self.delivered]
+                    ))
+                }
+                completion(entryList)
+            } catch {
+                print("Cannot get list of undelivered entries")
+                completion(nil)
+            }
+        }
+    }
+
+    func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> Void) {
         queue.async {
             let entry = self.entries.filter(self.id == entryID)
             do {
@@ -132,7 +132,7 @@ class DataManager: DatabaseManagerProtocol {
                     self.date <- newEntry.date,
                     self.latitude <- newEntry.location.latitude,
                     self.longitude <- newEntry.location.longitude,
-                    self.delivered <- self.delivered
+                    self.delivered <- self.delivered,
                 ])
                 if try self.db!.run(update) > 0 {
                     completion(true)
@@ -146,12 +146,12 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
-    func updateDeliveryStatus(entryID: String, delivered: Bool, completion: @escaping (Bool) -> ()) {
+    func updateDeliveryStatus(entryID: String, delivered: Bool, completion: @escaping (Bool) -> Void) {
         queue.async {
             let entry = self.entries.filter(self.id == entryID)
             do {
                 let update = entry.update([
-                    self.delivered <- delivered
+                    self.delivered <- delivered,
                 ])
                 if try self.db!.run(update) > 0 {
                     completion(true)
@@ -164,8 +164,8 @@ class DataManager: DatabaseManagerProtocol {
             }
         }
     }
-    
-    func deleteEntry(entryID: String, completion: @escaping (Bool) -> ()) {
+
+    func deleteEntry(entryID: String, completion: @escaping (Bool) -> Void) {
         queue.async {
             let entry = self.entries.filter(self.id == entryID && self.delivered == true)
             do {
