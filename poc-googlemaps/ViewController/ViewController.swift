@@ -12,10 +12,10 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    var manager: SharedQueue?
     var isRunning = true
     var timer: DispatchSourceTimer?
-    private let databaseManager: DataManager = DataManager.instance
+    
+    var queueManager: QueueManagerProtocol?
 
     var canPressPanicButton: Bool = true
 
@@ -36,6 +36,29 @@ class ViewController: UIViewController {
     }()
 
     // MARK: - Life cycle
+    
+    init(databaseManager: DatabaseManagerProtocol, apiManager: APISenderProtocol) {
+        let sharedQueue = SharedQueue(databaseManager: databaseManager)
+        self.queueManager = QueueManager(
+            sharedQueue: sharedQueue,
+            databaseManager: databaseManager,
+            apiManager: apiManager
+        )
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        let databaseManager = DataManager.instance
+        let apiManager = APISender()
+        let sharedQueue = SharedQueue(databaseManager: databaseManager)
+        self.queueManager = QueueManager(
+            sharedQueue: sharedQueue,
+            databaseManager: databaseManager,
+            apiManager: apiManager
+        )
+        super.init(coder: coder)
+    }
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,15 +72,7 @@ class ViewController: UIViewController {
         view.bringSubviewToFront(btPanic)
 
         // MARK: - QUEUE
-
-        manager = SharedQueue(databaseManager: databaseManager)
-        startEnqueue()
-        // Dequeuing only initialize after the
-        // first location update and enqueue
-        // operation
-        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 30) {
-            self.startDequeue()
-        }
+        queueManager?.startQueueManagement()
     }
 
     override func viewDidLayoutSubviews() {
@@ -73,39 +88,6 @@ class ViewController: UIViewController {
     }
 
     // MARK: - Functions
-
-    func startEnqueue() {
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            while self?.isRunning ?? false {
-                guard let clLocation = GoogleMapsHelper.shared.locationManager.location else { return }
-                let currentDate = Date()
-
-                let location = clLocation.toLocation()
-
-                let timeLocation = TimeLocation(id: IDGenerator.generateUniqueID(), date: currentDate, location: location, delivered: false)
-                self?.manager?.enqueue(timeLocation)
-
-                Thread.sleep(forTimeInterval: 30)
-            }
-        }
-    }
-
-    func startDequeue() {
-        let dequeueQueue = DispatchQueue(label: "com.dequeue.queue", qos: .utility)
-        dequeueQueue.async { [weak self] in
-            while self?.isRunning ?? false {
-                switch self?.manager?.dequeue() {
-                case let .success(item):
-                    // print("Date: \(item.date), Location: \(item.location)")
-                    break
-                case let .failure(error):
-                    break
-                case .none:
-                    break
-                }
-            }
-        }
-    }
 
     func showPanicButtonAlert() {
         let alertController = UIAlertController(title: "Pânico já pressionado", message: "Aguarde 2 segundos para pressionar o botão novamente.", preferredStyle: .alert)

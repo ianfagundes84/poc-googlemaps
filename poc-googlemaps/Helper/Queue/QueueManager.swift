@@ -13,11 +13,11 @@ protocol QueueManagerProtocol {
 
 class QueueManager: QueueManagerProtocol {
     
-    private let sharedQueue: SharedQueue
+    private let sharedQueue: SharedQueueProtocol
     private let databaseManager: DatabaseManagerProtocol
     private let apiManager: APISenderProtocol
     
-    init(sharedQueue: SharedQueue, databaseManager: DatabaseManagerProtocol, apiManager: APISenderProtocol) {
+    init(sharedQueue: SharedQueueProtocol, databaseManager: DatabaseManagerProtocol, apiManager: APISenderProtocol) {
         self.sharedQueue = sharedQueue
         self.databaseManager = databaseManager
         self.apiManager = apiManager

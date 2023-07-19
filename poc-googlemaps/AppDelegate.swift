@@ -14,21 +14,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-         GMSServices.provideAPIKey("AIzaSyAiXRtrUTbJvEwv32ujbErE1nlqnCvV71s")
-         GMSServices.setMetalRendererEnabled(true)
-         
-//         let databaseManager = DataManager.instance
-//         let sharedQueue = SharedQueue(databaseManager: databaseManager)
-         let mapsViewController = ViewController()
-         
-         // Set up window and root view controller
-         window = UIWindow()
-         window?.rootViewController = mapsViewController
-         window?.makeKeyAndVisible()
-         
-         return true
-     }
+        GMSServices.provideAPIKey("AIzaSyAiXRtrUTbJvEwv32ujbErE1nlqnCvV71s")
+        GMSServices.setMetalRendererEnabled(true)
+        
+        let databaseManager = DataManager.instance
+        let apiManager = APISender()
 
+        let mapsViewController = ViewController(databaseManager: databaseManager, apiManager: apiManager)
+
+        
+        // Set up window and root view controller
+        window = UIWindow()
+        window?.rootViewController = mapsViewController
+        window?.makeKeyAndVisible()
+        
+        return true
+    }
     // MARK: UISceneSession Lifecycle
 
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {

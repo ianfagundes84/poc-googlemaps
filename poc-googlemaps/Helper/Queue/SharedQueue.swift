@@ -11,13 +11,12 @@ enum QueueError: Error {
     case dequeueFailed
 }
 
-protocol Queue {
-    associatedtype Position
-    func enqueue(_ element: Position)
-    func dequeue() -> Result<Position, QueueError>
+protocol SharedQueueProtocol {
+    func enqueue(_ timeLocation: TimeLocation)
+    func dequeue() -> Result<TimeLocation, QueueError>
 }
 
-class SharedQueue: Queue {
+class SharedQueue: SharedQueueProtocol {
     typealias Position = TimeLocation
     
     private let databaseManager: DatabaseManagerProtocol
