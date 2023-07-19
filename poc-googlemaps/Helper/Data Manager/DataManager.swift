@@ -27,6 +27,8 @@ class DataManager: DatabaseManagerProtocol {
     private let date = Expression<Date>("date")
     private let latitude = Expression<Double>("latitude")
     private let longitude = Expression<Double>("longitude")
+    private let delivered = Expression<Bool>("delivered")
+
 
     private init() {
         let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
@@ -52,6 +54,7 @@ class DataManager: DatabaseManagerProtocol {
                     table.column(self.date)
                     table.column(self.latitude)
                     table.column(self.longitude)
+                    table.column(self.delivered, defaultValue: false)
                 })
                 completion(true)
             } catch {
@@ -68,7 +71,8 @@ class DataManager: DatabaseManagerProtocol {
                     self.id <- IDGenerator.generateUniqueID(),
                     self.date <- entry.date,
                     self.latitude <- entry.location.latitude,
-                    self.longitude <- entry.location.longitude
+                    self.longitude <- entry.location.longitude,
+                    self.delivered <- false
                 )
                 let _ = try self.db?.run(insert)
                 completion(entry.id)
@@ -105,7 +109,8 @@ class DataManager: DatabaseManagerProtocol {
                 let update = entry.update([
                     self.date <- newEntry.date,
                     self.latitude <- newEntry.location.latitude,
-                    self.longitude <- newEntry.location.longitude
+                    self.longitude <- newEntry.location.longitude,
+                    self.delivered <- self.delivered
                 ])
                 if try self.db!.run(update) > 0 {
                     completion(true)
@@ -121,7 +126,7 @@ class DataManager: DatabaseManagerProtocol {
 
     func deleteEntry(entryID: String, completion: @escaping (Bool) -> ()) {
         queue.async {
-            let entry = self.entries.filter(self.id == entryID)
+            let entry = self.entries.filter(self.id == entryID && self.delivered == true)
             do {
                 if try self.db!.run(entry.delete()) > 0 {
                     completion(true)
