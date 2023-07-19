@@ -6,7 +6,12 @@
 //
 
 import Foundation
-class QueueManager {
+
+protocol QueueManagerProtocol {
+    func startQueueManagement()
+}
+
+class QueueManager: QueueManagerProtocol {
     
     private let sharedQueue: SharedQueue
     private let databaseManager: DatabaseManagerProtocol
