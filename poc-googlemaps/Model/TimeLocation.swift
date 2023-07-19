@@ -21,8 +21,4 @@ struct Location {
     func convertToLocation(from clLocation: CLLocation) -> Location {
         return Location(latitude: clLocation.coordinate.latitude, longitude: clLocation.coordinate.longitude)
     }
-
-    func returnUniqueID() -> Int64 {
-        return Int64(Date().timeIntervalSince1970 * 1000)
-    }
 }
