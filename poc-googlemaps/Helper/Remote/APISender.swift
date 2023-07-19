@@ -23,15 +23,8 @@ class APISender: APISenderProtocol {
 
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let json: [String: Any] = [
-            "id": entry.id,
-            "date": entry.date,
-            "location": [
-                "latitude": entry.location.latitude,
-                "longitude": entry.location.longitude,
-            ],
-        ]
+        
+        let json = entry.jsonRepresentation
 
         let jsonData = try? JSONSerialization.data(withJSONObject: json)
         request.httpBody = jsonData

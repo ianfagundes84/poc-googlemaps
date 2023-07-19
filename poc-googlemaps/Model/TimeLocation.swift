@@ -31,3 +31,21 @@ struct Location {
         return Location(latitude: clLocation.coordinate.latitude, longitude: clLocation.coordinate.longitude)
     }
 }
+
+extension TimeLocation {
+    var jsonRepresentation: [String: Any] {
+        let dateFormatter = ISO8601DateFormatter()
+        let dateString = dateFormatter.string(from: self.date)
+
+        let json: [String: Any] = [
+            "id": self.id,
+            "date": dateString,
+            "location": [
+                "latitude": self.location.latitude,
+                "longitude": self.location.longitude,
+            ],
+        ]
+
+        return json
+    }
+}
