@@ -11,10 +11,10 @@ import CoreLocation
 
 protocol DatabaseManagerProtocol {
     func createTable(completion: @escaping (Bool) -> Void)
-    func addEntry(entry: TimeLocation, completion: @escaping (Int64?) -> Void)
+    func addEntry(entry: TimeLocation, completion: @escaping (String?) -> Void)
     func getAllEntries(completion: @escaping ([TimeLocation]?) -> Void)
-    func updateEntry(entryID: Int64, newEntry: TimeLocation, completion: @escaping (Bool) -> Void)
-    func deleteEntry(entryID: Int64, completion: @escaping (Bool) -> Void)
+    func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> ())
+    func deleteEntry(entryID: String, completion: @escaping (Bool) -> Void)
 }
 
 class DataManager: DatabaseManagerProtocol {
@@ -23,7 +23,7 @@ class DataManager: DatabaseManagerProtocol {
     private let queue = DispatchQueue(label: "com.databaseManager.queue", qos: .background)
 
     private let entries = Table("entries")
-    private let id = Expression<Int64>("id")
+    private let id = Expression<String>("id")
     private let date = Expression<Date>("date")
     private let latitude = Expression<Double>("latitude")
     private let longitude = Expression<Double>("longitude")
@@ -48,7 +48,7 @@ class DataManager: DatabaseManagerProtocol {
         queue.async {
             do {
                 try self.db?.run(self.entries.create(ifNotExists: true) { table in
-                    table.column(self.id, primaryKey: .default)
+                    table.column(self.id)
                     table.column(self.date)
                     table.column(self.latitude)
                     table.column(self.longitude)
@@ -61,16 +61,17 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
-    func addEntry(entry: TimeLocation, completion: @escaping (Int64?) -> ()) {
+    func addEntry(entry: TimeLocation, completion: @escaping (String?) -> ()) {
         queue.async {
             do {
                 let insert = self.entries.insert(
+                    self.id <- IDGenerator.generateUniqueID(),
                     self.date <- entry.date,
                     self.latitude <- entry.location.latitude,
                     self.longitude <- entry.location.longitude
                 )
-                let id = try self.db?.run(insert)
-                completion(id)
+                let _ = try self.db?.run(insert)
+                completion(entry.id)
             } catch {
                 print("Cannot insert to database")
                 completion(nil)
@@ -97,7 +98,7 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
-    func updateEntry(entryID: Int64, newEntry: TimeLocation, completion: @escaping (Bool) -> ()) {
+    func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> ()) {
         queue.async {
             let entry = self.entries.filter(self.id == entryID)
             do {
@@ -118,7 +119,7 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
-    func deleteEntry(entryID: Int64, completion: @escaping (Bool) -> ()) {
+    func deleteEntry(entryID: String, completion: @escaping (Bool) -> ()) {
         queue.async {
             let entry = self.entries.filter(self.id == entryID)
             do {

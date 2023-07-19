@@ -43,8 +43,7 @@ class SharedQueue: Queue {
         queue.append(element)
         
         databaseManager.addEntry(entry: element) { id in
-            // TODO: - Handle with creation
-            print("Enqueue date: \(element.date) id: \(element.id)")
+            print("Enqueue date: \(element.date) id: \(id)")
         }
         
         semaphoreLock.signal()
@@ -62,13 +61,11 @@ class SharedQueue: Queue {
 
         let dequeuedElement = queue.removeFirst()
 
-        if let dequeuedElementId = dequeuedElement.id {
-            databaseManager.deleteEntry(entryID: dequeuedElementId) { success in
+        databaseManager.deleteEntry(entryID: dequeuedElement.id) { success in
                 // TODO: - handle with success deletion
                 print("Dequeue date: \(dequeuedElement.date) id: \(dequeuedElement.id)")
             }
-        }
-
+            
         semaphoreLock.signal()
         return .success(dequeuedElement)
     }

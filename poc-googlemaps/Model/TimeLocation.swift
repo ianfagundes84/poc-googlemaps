@@ -9,7 +9,7 @@ import CoreLocation
 import Foundation
 
 struct TimeLocation {
-    let id: Int64?
+    let id: String
     let date: Date
     let location: Location
 }

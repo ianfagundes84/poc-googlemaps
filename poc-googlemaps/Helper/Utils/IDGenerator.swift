@@ -6,10 +6,8 @@
 //
 
 import Foundation
-struct IDGenerator {
-    static func generateUniqueID() -> Int64 {
-        let currentDate = Date()
-        let id = Int64(currentDate.timeIntervalSince1970 * 1000)
-        return id
+class IDGenerator {
+    static func generateUniqueID() -> String {
+        return UUID().uuidString.replacingOccurrences(of: "-", with: "")
     }
 }
