@@ -13,6 +13,8 @@ protocol DatabaseManagerProtocol {
     func createTable(completion: @escaping (Bool) -> Void)
     func addEntry(entry: TimeLocation, completion: @escaping (String?) -> Void)
     func getAllEntries(completion: @escaping ([TimeLocation]?) -> Void)
+    func getUndeliveredEntries(completion: @escaping ([TimeLocation]?) -> ())
+    func updateDeliveryStatus(entryID: String, delivered: Bool, completion: @escaping (Bool) -> ())
     func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> ())
     func deleteEntry(entryID: String, completion: @escaping (Bool) -> Void)
 }
@@ -102,6 +104,26 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
+    func getUndeliveredEntries(completion: @escaping ([TimeLocation]?) -> ()) {
+        queue.async {
+            var entryList = [TimeLocation]()
+            do {
+                for entry in try self.db!.prepare(self.entries.filter(self.delivered == false)) {
+                    entryList.append(TimeLocation(
+                        id: entry[self.id],
+                        date: entry[self.date],
+                        location: Location(latitude: entry[self.latitude], longitude: entry[self.longitude]),
+                        delivered: entry[self.delivered]
+                    ))
+                }
+                completion(entryList)
+            } catch {
+                print("Cannot get list of undelivered entries")
+                completion(nil)
+            }
+        }
+    }
+    
     func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> ()) {
         queue.async {
             let entry = self.entries.filter(self.id == entryID)
@@ -124,6 +146,25 @@ class DataManager: DatabaseManagerProtocol {
         }
     }
 
+    func updateDeliveryStatus(entryID: String, delivered: Bool, completion: @escaping (Bool) -> ()) {
+        queue.async {
+            let entry = self.entries.filter(self.id == entryID)
+            do {
+                let update = entry.update([
+                    self.delivered <- delivered
+                ])
+                if try self.db!.run(update) > 0 {
+                    completion(true)
+                } else {
+                    completion(false)
+                }
+            } catch {
+                print("Update failed: \(error)")
+                completion(false)
+            }
+        }
+    }
+    
     func deleteEntry(entryID: String, completion: @escaping (Bool) -> ()) {
         queue.async {
             let entry = self.entries.filter(self.id == entryID && self.delivered == true)

@@ -39,19 +39,26 @@ class SharedQueue: Queue {
 
     func enqueue(_ element: Position) {
         semaphoreLock.wait()
-        
-        queue.append(element)
-        
-        databaseManager.addEntry(entry: element) { id in
-            guard let id = id else {
-                print("ERROR")
-                return }
-            print("Enqueue date: \(element.date.asLocalGMT) id: \(id)")
+            
+        databaseManager.getAllEntries { [weak self] entries in
+            if let entries = entries, entries.contains(where: { $0.id == element.id }) {
+                self?.semaphoreLock.signal()
+            } else {
+                self?.queue.append(element)
+            
+                self?.databaseManager.addEntry(entry: element) { id in
+                    guard let id = id else {
+                        print("ERROR")
+                        return }
+                    print("Enqueue date: \(element.date.asLocalGMT) id: \(id)")
+                }
+            
+                self?.semaphoreLock.signal()
+                self?.semaphoreQueue.signal()
+            }
         }
-        
-        semaphoreLock.signal()
-        semaphoreQueue.signal()
     }
+
     
     func dequeue() -> Result<Position, QueueError> {
         semaphoreQueue.wait()
@@ -63,13 +70,21 @@ class SharedQueue: Queue {
         }
 
         let dequeuedElement = queue.removeFirst()
-
-        databaseManager.deleteEntry(entryID: dequeuedElement.id) { success in
-                // TODO: - handle with success deletion
-            print("Dequeue date: \(dequeuedElement.date.asLocalGMT) id: \(dequeuedElement.id)")
-            }
-            
+        
+        print("Dequeue date: \(dequeuedElement.date.asLocalGMT) id: \(dequeuedElement.id)")
+                
         semaphoreLock.signal()
         return .success(dequeuedElement)
     }
+    
+    func requeueUndelivered() {
+        databaseManager.getUndeliveredEntries { entries in
+            if let entries = entries {
+                for entry in entries {
+                    self.enqueue(entry)
+                }
+            }
+        }
+    }
+
 }
