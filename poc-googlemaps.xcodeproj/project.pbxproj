@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		140184792A67792F009C3456 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 140184782A67792F009C3456 /* Date+Extensions.swift */; };
+		1419B2B52A689DCC006B0B5C /* Ian WayPoints.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 1419B2B42A689DCC006B0B5C /* Ian WayPoints.gpx */; };
 		1466DAAD2A6369C0009F20DE /* SharedQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466DAAC2A6369C0009F20DE /* SharedQueue.swift */; };
 		1466DAB02A6369FF009F20DE /* TimeLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466DAAF2A6369FF009F20DE /* TimeLocation.swift */; };
 		149D894F2A64AA9F00765107 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149D894E2A64AA9F00765107 /* DataManager.swift */; };
@@ -27,6 +28,7 @@
 
 /* Begin PBXFileReference section */
 		140184782A67792F009C3456 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
+		1419B2B42A689DCC006B0B5C /* Ian WayPoints.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Ian WayPoints.gpx"; sourceTree = "<group>"; };
 		1466DAAC2A6369C0009F20DE /* SharedQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedQueue.swift; sourceTree = "<group>"; };
 		1466DAAF2A6369FF009F20DE /* TimeLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeLocation.swift; sourceTree = "<group>"; };
 		149D894E2A64AA9F00765107 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
@@ -126,13 +128,6 @@
 			path = ViewController;
 			sourceTree = "<group>";
 		};
-		14C80A8A2A61E70200847523 /* Presenter */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Presenter;
-			sourceTree = "<group>";
-		};
 		14C80A8B2A61E71D00847523 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
@@ -167,9 +162,9 @@
 		14DDD02F2A61E26F0087A906 /* poc-googlemaps */ = {
 			isa = PBXGroup;
 			children = (
+				1419B2B42A689DCC006B0B5C /* Ian WayPoints.gpx */,
 				1466DAAE2A6369EB009F20DE /* Model */,
 				14C80A8B2A61E71D00847523 /* Helper */,
-				14C80A8A2A61E70200847523 /* Presenter */,
 				14C80A892A61E6EE00847523 /* ViewController */,
 				14DDD0302A61E26F0087A906 /* AppDelegate.swift */,
 				14DDD0322A61E26F0087A906 /* SceneDelegate.swift */,
@@ -259,6 +254,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1419B2B52A689DCC006B0B5C /* Ian WayPoints.gpx in Resources */,
 				14DDD03D2A61E2700087A906 /* LaunchScreen.storyboard in Resources */,
 				14DDD03A2A61E2700087A906 /* Assets.xcassets in Resources */,
 				14DDD0382A61E26F0087A906 /* Main.storyboard in Resources */,
