@@ -17,6 +17,7 @@ protocol DatabaseManagerProtocol {
     func updateDeliveryStatus(entryID: String, delivered: Bool, completion: @escaping (Bool) -> Void)
     func updateEntry(entryID: String, newEntry: TimeLocation, completion: @escaping (Bool) -> Void)
     func deleteEntry(entryID: String, completion: @escaping (Bool) -> Void)
+    func deleteAllEntries(completion: @escaping (Bool) -> Void)
 }
 
 class DataManager: DatabaseManagerProtocol {
@@ -176,6 +177,18 @@ class DataManager: DatabaseManagerProtocol {
                 }
             } catch {
                 print("Delete failed: \(error)")
+                completion(false)
+            }
+        }
+    }
+    
+    func deleteAllEntries(completion: @escaping (Bool) -> Void) {
+        queue.async {
+            do {
+                try self.db?.run(self.entries.delete())
+                completion(true)
+            } catch {
+                print("Delete all entries failed: \(error)")
                 completion(false)
             }
         }

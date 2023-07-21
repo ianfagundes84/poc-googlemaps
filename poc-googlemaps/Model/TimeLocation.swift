@@ -13,12 +13,14 @@ struct TimeLocation {
     let date: Date
     let location: Location
     let delivered: Bool
+    let creationDate: Date
     
     init(id: String, date: Date, location: Location, delivered: Bool) {
         self.id = id
         self.date = date
         self.location = location
-        self.delivered = delivered 
+        self.delivered = delivered
+        self.creationDate = Date()
     }
 
 }
@@ -34,12 +36,13 @@ struct Location {
 
 extension TimeLocation {
     var jsonRepresentation: [String: Any] {
-        let dateFormatter = ISO8601DateFormatter()
-        let dateString = dateFormatter.string(from: self.date)
+        let dateString =  self.date.asLocalGMT
+        let creationDate = self.creationDate.asLocalGMT
 
         let json: [String: Any] = [
             "id": self.id,
             "date": dateString,
+            "creationDate": creationDate,
             "location": [
                 "latitude": self.location.latitude,
                 "longitude": self.location.longitude,
