@@ -16,7 +16,8 @@ class GoogleMapsHelper: NSObject, CLLocationManagerDelegate {
 
     var locationManager = CLLocationManager()
     var panicLocationManager = CLLocationManager()
-
+    var currentLocation: CLLocation?
+    
     var mapView: GMSMapView?
 
     var isPanicButtonPressed: Bool = false
@@ -141,7 +142,9 @@ extension GoogleMapsHelper {
 extension GoogleMapsHelper {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-
+        
+        currentLocation = location
+        
         if manager == locationManager {
             let zoomLevel = manager.accuracyAuthorization == .fullAccuracy ? preciseLocationZoomLevel : approximateLocationZoomLevel
             let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
